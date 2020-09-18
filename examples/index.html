@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>webgl - CiaB</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+	</head>
+	<body>
+
+		<script type="module">
+
+			import * as THREE from '../build/three.module.js';
+
+			import { GUI } from './jsm/libs/dat.gui.module.js';
+
+			import { OrbitControls } from './jsm/controls/OrbitControls.js';
+
+			var camera, scene, renderer;
+
+			const BOX_VERSION_PATH = ["caixa1", "caixa2"];
+
+			var lights = []
+			var params = {
+				pathIndex: 0,
+				lightIntensity: 0.5,
+				clipIntersection: true,
+				planeConstant: 0,
+				showHelpers: false
+			};
+
+			var clipPlanes = [
+				new THREE.Plane( new THREE.Vector3( 1, 0, 0 ), 0 ),
+				new THREE.Plane( new THREE.Vector3( 0, - 1, 0 ), 0 ),
+				new THREE.Plane( new THREE.Vector3( 0, 0, - 1 ), 0 )
+			];
+
+
+			for ( var j = 0; j < clipPlanes.length; j ++ ) {
+				clipPlanes[ j ].constant = 1;
+			}
+
+			init();
+			render();
+
+			function init() {
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.localClippingEnabled = true;
+				document.body.appendChild( renderer.domElement );
+
+				scene = new THREE.Scene();
+
+				camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 200 );
+
+				camera.position.set( - 1.5, 2.5, 3.0 );
+
+				var controls = new OrbitControls( camera, renderer.domElement );
+				controls.addEventListener( 'change', render ); // use only if there is no animation loop
+				controls.minDistance = 1;
+				controls.maxDistance = 10;
+				controls.enablePan = false;
+
+
+				var light = new THREE.HemisphereLight( 0xffffff, 0x080808, params.lightIntensity ); 
+				light.position.set( - 2, 1, 2 );
+				lights.push( light );
+
+				var light2 = new THREE.HemisphereLight( 0xffffff, 0x080808, params.lightIntensity );
+				light2.position.set(  -2, 1, -2 );
+				lights.push( light2 );
+
+				var light3 = new THREE.HemisphereLight( 0xffffff, 0x080808, params.lightIntensity );
+				light3.position.set(  2, 1, 2 );
+				lights.push( light3 );
+
+				var light4 = new THREE.HemisphereLight( 0xffffff, 0x080808, params.lightIntensity );
+				light4.position.set(  2, 1, -2 );
+				lights.push( light4 );
+
+				var light5 = new THREE.HemisphereLight( 0xffffff, 0x080808, params.lightIntensity );
+				light5.position.set(  2, -2, -1.5 );
+				lights.push( light5 );
+				
+				var light6 = new THREE.HemisphereLight( 0xffffff, 0x080808, params.lightIntensity / 6 );
+				light6.position.set(  -2, -2, 1.5 );
+				lights.push( light6 );
+
+				
+				lights.map(l => scene.add( l ))
+
+
+				var dirLight = new THREE.DirectionalLight( 0xffffff, params.lightIntensity );
+				dirLight.color.setHSL( 0.1, 1, 0.95 );
+				dirLight.position.set( - 1, 0.9, 1 );
+				dirLight.position.multiplyScalar( 30 );
+				scene.add( dirLight );
+
+				dirLight.castShadow = true;
+
+				dirLight.shadow.mapSize.width = 2048;
+				dirLight.shadow.mapSize.height = 2048;
+
+				var d = 50;
+
+				dirLight.shadow.camera.left = - d;
+				dirLight.shadow.camera.right = d;
+				dirLight.shadow.camera.top = d;
+				dirLight.shadow.camera.bottom = - d;
+
+				// var helper = new CameraHelper( light.shadow.camera );
+				// scene.add( helper );
+
+				//
+
+
+				createGeometry();
+				
+				// helpers
+
+				var helpers = new THREE.Group();
+				helpers.add( new THREE.PlaneHelper( clipPlanes[ 0 ], 2, 0xff0000 ) );
+				helpers.add( new THREE.PlaneHelper( clipPlanes[ 1 ], 2, 0x00ff00 ) );
+				helpers.add( new THREE.PlaneHelper( clipPlanes[ 2 ], 2, 0x0000ff ) );
+				helpers.visible = false;
+				scene.add( helpers );
+
+				// gui
+
+				var gui = new GUI();
+
+
+				gui.add( params, 'lightIntensity', 0, 1 ).step( 0.01 ).name( 'luz' ).onChange( function ( value ) {
+
+					lights.map(l => l.intensity = params.lightIntensity)
+					render();
+
+				} );
+
+				gui.add( params, 'pathIndex', { caixa_1 : 0, caixa_2: 1}).name( "CAIXA" ).onChange( function ( value ) {
+					
+					params.pathIndex = value ;
+					createGeometry()
+					render();
+
+				} );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				render();
+
+			}
+
+			function render() {
+
+				renderer.render( scene, camera );
+
+			}
+
+			function createGeometry () {
+
+				var geometry = new THREE.BoxBufferGeometry( 1, 1, 1 );
+				geometry.needUpdate = true
+				var geometry2 = new THREE.BoxBufferGeometry( 0.99, 0.99, 0.99 );
+				geometry2.needUpdate = true
+
+				const textureAlpha = new THREE.TextureLoader().load( 'textures/box_window.jpg' );
+
+				var material = new THREE.MeshLambertMaterial({
+					color: new THREE.Color(0x997f64),
+					side: THREE.DoubleSide,
+					clippingPlanes: clipPlanes,
+					clipIntersection: params.clipIntersection
+				});
+
+				
+				var materials = [
+					new THREE.MeshLambertMaterial({
+						map: new THREE.TextureLoader().load('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'side1.jpg'),
+						side: THREE.DoubleSide,
+						clippingPlanes: clipPlanes,
+						clipIntersection: params.clipIntersection
+					}),
+
+					new THREE.MeshLambertMaterial({
+						alphaMap: textureAlpha ,
+						map: new THREE.TextureLoader().load('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'side3.jpg'),
+						side: THREE.DoubleSide,
+						clippingPlanes: clipPlanes,
+						clipIntersection: params.clipIntersection,
+						transparent : true,
+						depthWrite  : false
+					}),
+					material,
+					material,
+					new THREE.MeshLambertMaterial({
+						map: new THREE.TextureLoader().load('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'side2.jpg'),
+						side: THREE.DoubleSide,
+						clippingPlanes: clipPlanes,
+						clipIntersection: params.clipIntersection
+					}),
+					new THREE.MeshLambertMaterial({
+						map: new THREE.TextureLoader().load('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'side4.jpg'),
+						side: THREE.DoubleSide,
+						clippingPlanes: clipPlanes,
+						clipIntersection: params.clipIntersection
+					})
+				];
+
+				var materials2 = [
+					material,
+					new THREE.MeshLambertMaterial({
+						alphaMap: textureAlpha ,
+						map: new THREE.TextureLoader().load('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'side3.jpg'),
+						side: THREE.DoubleSide,
+						clippingPlanes: clipPlanes,
+						clipIntersection: params.clipIntersection,
+						transparent : true,
+						depthWrite  : false
+					}),
+					material,
+					material,
+					material,
+					material,
+				];
+
+				scene.add(  new THREE.Mesh( geometry, materials )  );
+				scene.add(  new THREE.Mesh( geometry2, materials2 )  );
+				
+			}
+
+
+		</script>
+
+	</body>
+</html>
