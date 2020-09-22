@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<title>webgl - CiaB</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<link type="text/css" rel="stylesheet" href="main.css">
-	</head>
-	<body>
 
-		<script type="module">
+<head>
+	<title>webgl - CiaB</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link type="text/css" rel="stylesheet" href="main.css">
+</head>
 
-			import * as THREE from '../build/three.module.js';
+<body>
+
+	<script type="module">
+
+		import * as THREE from '../build/three.module.js';
 
 			import { GUI } from './jsm/libs/dat.gui.module.js';
 
@@ -18,7 +20,7 @@
 
 			var camera, scene, renderer;
 
-			const BOX_VERSION_PATH = ["caixa1", "caixa2"];
+			const BOX_VERSION_PATH = ["caixa3", "caixa1", "caixa2"];
 
 			var lights = []
 			var params = {
@@ -139,7 +141,7 @@
 
 				} );
 
-				gui.add( params, 'pathIndex', { caixa_1 : 0, caixa_2: 1}).name( "CAIXA" ).onChange( function ( value ) {
+				gui.add( params, 'pathIndex', { caixa_1 : 0, caixa_2: 1, caixa_3: 2}).name( "CAIXA" ).onChange( function ( value ) {
 					
 					params.pathIndex = value ;
 					createGeometry()
@@ -186,45 +188,28 @@
 					clipIntersection: params.clipIntersection
 				});
 
-				
 				var materials = [
-					new THREE.MeshLambertMaterial({
-						map: new THREE.TextureLoader().load('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'side1.jpg'),
-						side: THREE.DoubleSide,
-						clippingPlanes: clipPlanes,
-						clipIntersection: params.clipIntersection
-					}),
-
+					getBoxSideTexture('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'trás.jpg'),
 					new THREE.MeshLambertMaterial({
 						alphaMap: textureAlpha ,
-						map: new THREE.TextureLoader().load('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'side3.jpg'),
+						map: new THREE.TextureLoader().load('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'frente.jpg'), //OnError alert that side front is required
 						side: THREE.DoubleSide,
 						clippingPlanes: clipPlanes,
 						clipIntersection: params.clipIntersection,
 						transparent : true,
 						depthWrite  : false
 					}),
-					material,
-					material,
-					new THREE.MeshLambertMaterial({
-						map: new THREE.TextureLoader().load('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'side2.jpg'),
-						side: THREE.DoubleSide,
-						clippingPlanes: clipPlanes,
-						clipIntersection: params.clipIntersection
-					}),
-					new THREE.MeshLambertMaterial({
-						map: new THREE.TextureLoader().load('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'side4.jpg'),
-						side: THREE.DoubleSide,
-						clippingPlanes: clipPlanes,
-						clipIntersection: params.clipIntersection
-					})
+					getBoxSideTexture('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'cima.jpg'),
+					getBoxSideTexture('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'baixo.jpg'),
+					getBoxSideTexture('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'direita.jpg'),
+					getBoxSideTexture('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'esquerda.jpg'),
 				];
 
 				var materials2 = [
 					material,
 					new THREE.MeshLambertMaterial({
 						alphaMap: textureAlpha ,
-						map: new THREE.TextureLoader().load('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'side3.jpg'),
+						map: new THREE.TextureLoader().load('textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/'+'frente.jpg'),
 						side: THREE.DoubleSide,
 						clippingPlanes: clipPlanes,
 						clipIntersection: params.clipIntersection,
@@ -242,8 +227,45 @@
 				
 			}
 
+			function getBoxSideTexture (textFile) {
+				if (fileExists(textFile)) {
+					//Texture
+					return new THREE.MeshLambertMaterial({
+						map: new THREE.TextureLoader().load(textFile),
+						side: THREE.DoubleSide,
+						clippingPlanes: clipPlanes,
+						clipIntersection: params.clipIntersection
+					});
+				}
+
+				// only color
+				return new THREE.MeshLambertMaterial({
+					color: new THREE.Color(0x997f64),
+					side: THREE.DoubleSide,
+					clippingPlanes: clipPlanes,
+					clipIntersection: params.clipIntersection
+				});
+			} 
+
+			function fileExists(file)
+			{
+
+				var rawFile = new XMLHttpRequest();
+				rawFile.open("GET", file, false);
+				rawFile.send(null);
+
+				if(rawFile.status === 200 || rawFile.status == 0)
+				{
+					console.log("file exists ! ", file)
+					return true;
+				}
+				console.log("file does not exist ! ", file)
+				return false;
+		
+			}
 
 		</script>
 
-	</body>
+</body>
+
 </html>
