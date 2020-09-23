@@ -20,7 +20,7 @@
 
 			var camera, scene, renderer;
 
-			const BOX_VERSION_PATH = ["caixa3", "caixa1", "caixa2"];
+			const BOX_VERSION_PATH = ["caixa5", "caixa4", "caixa3", "caixa1", "caixa2"];
 
 			var lights = []
 			var params = {
@@ -141,7 +141,7 @@
 
 				} );
 
-				gui.add( params, 'pathIndex', { caixa_1 : 0, caixa_2: 1, caixa_3: 2}).name( "CAIXA" ).onChange( function ( value ) {
+				gui.add( params, 'pathIndex', { caixa_1 : 0, caixa_2: 1, caixa_3: 2, caixa_4: 3, caixa_4: 4}).name( "CAIXA" ).onChange( function ( value ) {
 					
 					params.pathIndex = value ;
 					createGeometry()
@@ -179,7 +179,7 @@
 				var geometry2 = new THREE.BoxBufferGeometry( 0.99, 0.99, 0.99 );
 				geometry2.needUpdate = true
 
-				const textureAlpha = new THREE.TextureLoader().load( 'textures/box_window.jpg' );
+				const textureAlpha = new THREE.TextureLoader().load( 'textures/box_window_2.jpg' );
 
 				var material = new THREE.MeshLambertMaterial({
 					color: new THREE.Color(0x997f64),
