@@ -20,7 +20,7 @@
 
 			var camera, scene, renderer;
 
-			const BOX_VERSION_PATH = ["caixa5", "caixa4", "caixa3", "caixa1", "caixa2"];
+			const BOX_VERSION_PATH = ["caixa6", "caixa7", "caixa5", "caixa4", "caixa3", "caixa1", "caixa2"];
 
 			var lights = []
 			var params = {
@@ -41,6 +41,8 @@
 			for ( var j = 0; j < clipPlanes.length; j ++ ) {
 				clipPlanes[ j ].constant = 1;
 			}
+
+			var mesh1, mesh2
 
 			init();
 			render();
@@ -141,8 +143,9 @@
 
 				} );
 
-				gui.add( params, 'pathIndex', { caixa_1 : 0, caixa_2: 1, caixa_3: 2, caixa_4: 3, caixa_4: 4}).name( "CAIXA" ).onChange( function ( value ) {
-					
+				gui.add( params, 'pathIndex', { caixa_1 : 0, caixa_2: 1, caixa_3: 2, caixa_4: 3, caixa_5: 4, caixa_6: 5, caixa_7: 6}).name( "CAIXA" ).onChange( function ( value ) {
+					scene.remove(mesh1)
+					scene.remove(mesh2)
 					params.pathIndex = value ;
 					createGeometry()
 					render();
@@ -179,7 +182,7 @@
 				var geometry2 = new THREE.BoxBufferGeometry( 0.99, 0.99, 0.99 );
 				geometry2.needUpdate = true
 
-				const textureAlpha = new THREE.TextureLoader().load( 'textures/box_window_2.jpg' );
+				const textureAlpha = new THREE.TextureLoader().load( 'textures/box-sides/'+BOX_VERSION_PATH[params.pathIndex]+'/box_window.jpg' );
 
 				var material = new THREE.MeshLambertMaterial({
 					color: new THREE.Color(0x997f64),
@@ -222,9 +225,18 @@
 					material,
 				];
 
-				scene.add(  new THREE.Mesh( geometry, materials )  );
-				scene.add(  new THREE.Mesh( geometry2, materials2 )  );
-				
+				mesh1 = new THREE.Mesh( geometry, materials ) 
+				mesh2 = new THREE.Mesh( geometry2, materials2 )
+
+				scene.add( mesh1 );
+				scene.add( mesh2 );
+
+				geometry.dispose();
+				geometry2.dispose();
+				textureAlpha.dispose();
+				material.dispose();
+				materials.map( (el) => el.dispose())
+				materials2.map( (el) => el.dispose())
 			}
 
 			function getBoxSideTexture (textFile) {
